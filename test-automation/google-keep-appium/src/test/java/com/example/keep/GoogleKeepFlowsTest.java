@@ -8,42 +8,47 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GoogleKeepFlowsTest extends KeepTestBase {
     @Test
-    void createAndDeleteTextNote() {
+    void createAndDeleteTextNote() throws InterruptedException {
         String title = uniqueTitle();
-        createNote(title, "Created by the Google Keep Appium suite");
+        createNote(title);
         driver.findElement(By.xpath("//*[contains(@text,\"" + title + "\")]" )).click();
         deleteOpenNote();
         wait.until(d -> d.findElements(By.xpath("//*[contains(@text,\"" + title + "\")]" )).isEmpty());
     }
 
     @Test
-    void searchForNote() {
+    void searchForNote() throws InterruptedException {
         String title = uniqueTitle();
-        createNote(title, "Search flow body");
+        createNote(title);
         tapAny("Search", "Search notes", "Search Keep");
         var search = wait.until(d -> d.findElement(AppiumBy.androidUIAutomator(
                 "new UiSelector().className(\"android.widget.EditText\")")));
         search.sendKeys(title);
-        assertTrue(visible(By.xpath("//*[contains(@text,\"" + title + "\")]")).isDisplayed());
-        driver.navigate().back();
-        driver.findElement(By.xpath("//*[contains(@text,\"" + title + "\")]" )).click();
+        assertTrue(visible(By.xpath("//*[contains(@text,\"" + title + "\")]" )).isDisplayed());
+        driver.hideKeyboard();
+        var closeSearch = driver.findElements(AppiumBy.id("com.google.android.keep:id/search_actionbar_back_button"));
+        if (!closeSearch.isEmpty()) closeSearch.get(0).click();
+        visible(noteCard(title)).click();
+        visible(AppiumBy.id("com.google.android.keep:id/edit_note_text"));
         deleteOpenNote();
     }
 
     @Test
-    void editExistingNote() {
+    void editExistingNote() throws InterruptedException {
         String title = uniqueTitle();
-        createNote(title, "Original body");
-        driver.findElement(By.xpath("//*[contains(@text,\"" + title + "\")]" )).click();
-        var editor = visible(By.xpath("//*[contains(@text,'Original body') or @hint='Note']"));
-        editor.click();
-        editor.clear();
-        editor.sendKeys("Updated body");
-        driver.navigate().back();
-        driver.findElement(By.xpath("//*[contains(@text,\"" + title + "\")]" )).click();
-        assertTrue(visible(By.xpath("//*[contains(@text,'Updated body')]")).isDisplayed());
+        String updatedTitle = title + " edited";
+        createNote(title);
+        visible(noteCard(title)).click();
+        var titleField = visible(AppiumBy.id("com.google.android.keep:id/editable_title"));
+        titleField.clear();
+        titleField.sendKeys(updatedTitle);
+        wait.until(d -> updatedTitle.equals(d.findElement(AppiumBy.id("com.google.android.keep:id/editable_title")).getText()));
+        Thread.sleep(1000);
+        driver.navigate().back(); // Hide the keyboard.
+        driver.navigate().back(); // Save and leave the editor.
+        visible(noteCard(updatedTitle)).click();
+        var savedTitle = visible(AppiumBy.id("com.google.android.keep:id/editable_title"));
+        assertTrue(savedTitle.getText().contains(updatedTitle), "Saved title was: " + savedTitle.getText());
         deleteOpenNote();
     }
 }
-
-
