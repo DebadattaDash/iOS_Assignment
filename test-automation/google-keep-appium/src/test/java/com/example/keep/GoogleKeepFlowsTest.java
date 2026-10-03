@@ -20,7 +20,7 @@ class GoogleKeepFlowsTest extends KeepTestBase {
     void searchForNote() {
         String title = uniqueTitle();
         createNote(title, "Search flow body");
-        tapAny("Search", "Search notes");
+        tapAny("Search", "Search notes", "Search Keep");
         var search = wait.until(d -> d.findElement(AppiumBy.androidUIAutomator(
                 "new UiSelector().className(\"android.widget.EditText\")")));
         search.sendKeys(title);
@@ -45,4 +45,5 @@ class GoogleKeepFlowsTest extends KeepTestBase {
         deleteOpenNote();
     }
 }
+
 
