@@ -40,6 +40,8 @@ abstract class KeepTestBase {
         }
         driver = new AndroidDriver(URI.create(endpoint).toURL(), options);
         wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+        // A prior failed flow can leave the app on an editor or confirmation screen.
+        driver.terminateApp("com.google.android.keep");
         driver.activateApp("com.google.android.keep");
         wait.until(d -> "com.google.android.keep".equals(driver.getCurrentPackage()));
     }
@@ -68,7 +70,7 @@ abstract class KeepTestBase {
                 + "\n" + screenSummary());
     }
 
-    protected void createNote(String title, String body) {
+    protected void createNote(String title) {
         var createButtons = driver.findElements(AppiumBy.id(
                 "com.google.android.keep:id/speed_dial_create_close_button"));
         if (!createButtons.isEmpty()) {
@@ -83,16 +85,26 @@ abstract class KeepTestBase {
         } else {
             tapAny("New text note", "Text");
         }
-        visible(By.xpath("//*[@text='Title' or @hint='Title']")).sendKeys(title);
-        visible(By.xpath("//*[@text='Note' or @hint='Note']")).sendKeys(body);
-        driver.navigate().back(); // First back hides the keyboard.
-        driver.navigate().back(); // Second back leaves the editor and saves the note.
-        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[contains(@text,\"" + title + "\")]")));
+        visible(AppiumBy.id("com.google.android.keep:id/editable_title")).sendKeys(title);
+        driver.navigate().back(); // Hide the keyboard.
+        driver.navigate().back(); // Save and leave the editor.
+        wait.until(ExpectedConditions.presenceOfElementLocated(noteCard(title)));
+    }
+
+    protected By noteCard(String title) {
+        return By.xpath("//*[@resource-id='com.google.android.keep:id/browse_text_note' and contains(@content-desc, \"" + title + "\")]" );
     }
 
     protected void deleteOpenNote() {
         tapAny("Action", "More", "More options");
         tapAny("Delete", "Delete note");
+        // Keep shows a second confirmation dialog after the overflow action.
+        var confirmButton = driver.findElements(AppiumBy.id("android:id/button1"));
+        if (!confirmButton.isEmpty()) {
+            confirmButton.get(0).click();
+        } else {
+            tapAny("Delete", "Delete note");
+        }
     }
 
     private String screenSummary() {
@@ -118,9 +130,3 @@ abstract class KeepTestBase {
         return summary.toString();
     }
 }
-
-
-
-
-
-
