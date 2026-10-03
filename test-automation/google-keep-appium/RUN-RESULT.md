@@ -1,16 +1,17 @@
 # Google Keep Appium run report
 
-**Android UI status: PARTIAL PASS — 1 test passed; 2 tests were not included in the recorded run.**
+**Android UI status: PARTIAL PASS — 2 of 3 UI tests passed in isolated runs.**
 
 | Check | Result |
 |---|---|
 | App | Google Keep for Android (`com.google.android.keep`) from Google Play |
-| Suite | Java + Appium + JUnit 5; create/delete a text note, search for a note, and edit a note |
-| Device | Oppo CPH2467, Android 15 |
-| Passing UI test | `createAndDeleteTextNote`: **PASS** — 1 test, 0 failures, 0 errors, 0 skipped; Surefire reports 22.007 seconds. |
-| Other UI tests | `searchForNote` and `editExistingNote` are included in the suite but were not run in this passing single-test command. |
-| GitHub Actions | **PASS** — compile-only workflow run [#3](https://github.com/DebadattaDash/iOS_Assignment/actions/runs/37104721602). It compiles the suite but does not run Android UI tests. |
-| Loom recording | Not yet uploaded. |
+| Suite | Java + Appium + JUnit 5: create/delete a text note, search for a note, and edit a note |
+| Device | OnePlus CPH2467, Android 15 |
+| `createAndDeleteTextNote` | **PASS** — 1 test, 0 failures, 0 errors, 0 skipped; 44.56 seconds |
+| `searchForNote` | **PASS** — 1 test, 0 failures, 0 errors, 0 skipped; 34.59 seconds |
+| `editExistingNote` | **FAIL** — updated title was not found in the note list after returning from the editor |
+| Combined invocation | Appium socket hang-up interrupted the second session; the two passing checks were rerun separately |
+| GitHub Actions | Existing workflow is compile-only; it does not run Android UI tests |
+| Loom recording | Not uploaded |
 
-Run all three UI tests with `mvn test` while Appium is running and `adb devices -l` shows the phone as `device`. The latest local Surefire result is under `target/surefire-reports`.
-
+See [RUN-RESULT-2-UI-TESTS.md](RUN-RESULT-2-UI-TESTS.md) for the isolated run details. Run each UI test on a connected Android device with Appium running.
